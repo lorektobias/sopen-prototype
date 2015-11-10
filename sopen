@@ -1,0 +1,22 @@
+#! /usr/bin/php
+<?php
+$backend = "https://www.google.se/search?sclient=psy-ab&q=";
+$param = "-H 'accept-encoding: gzip, deflate, sdch' -H 'accept-language: sv-SE,sv;q=0.8,en-US;q=0.6,en;q=0.4' -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36' -H 'accept: */*' -H 'referer: https://www.google.se/' -H 'avail-dictionary: mpK3nL2B' -H 'authority: www.google.se'  --compressed";
+if(isset($argv[1])){
+	$word = $argv[1];
+} else {
+	$word = trim(fgets(STDIN));
+	echo $word;
+}
+$cmd = "curl '" . $backend . urlencode($word) . "' " . $param;
+echo $cmd;
+$res = shell_exec($cmd);
+preg_match_all('%<div\s*class="g">\s*<!--m-->.*<!--n-->\s*</div>%Usi', $res, $slices, PREG_SET_ORDER);
+foreach ($slices as $slice) {
+	preg_match('%href="([^"]*)"[^>]*>([^<]*)<.*class="st"[^>]*>(?:\s*<[^>]*>)*?\s*(.*)$%Usi', $slice[0], $site);
+	$site[2] = html_entity_decode($site[2]);
+	$site[3] = preg_replace('%<[^>]*>%', '', html_entity_decode($site[3]));
+	echo "\n----------------------------------------------------------------------------------------------------\n{$site[2]}\n{$site[3]}";
+}
+
+
